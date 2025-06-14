@@ -1,0 +1,39 @@
+{
+  "nombre": "Tierra de Azafranes",
+  "direccion": "San Martín 1002, Tandil, Argentina",
+  "googleMaps": "https://maps.app.goo.gl/gYESHw4BrMjurii1A",
+  "descripcion": "Restaurante-Arrocería. Especialistas en arroces, pescados y mariscos. Nuestra tienda @latiendadeazafranes",
+  "menuOnline": "https://www.instagram.com/tierradeazafranes",
+  "menu": [
+    {
+      "nombre": "Arroz con pollo",
+      "tipo": "arroz",
+      "descripcion": "Arroz con pollo, cebolla, ajo, tomate, cilantro y especias."
+    },
+    {
+      "nombre": "Milanesa napolitana",
+      "tipo": "carne",
+      "descripcion": "Milanesa de res con salsa de tomate, jamón y queso."
+    },
+    {
+      "nombre": "Ravioles de ricota y espinaca",
+      "tipo": "pasta",
+      "descripcion": "Pasta casera rellena, servida con salsa a elección."
+    },
+    {
+      "nombre": "Ensalada César",
+      "tipo": "ensalada",
+      "descripcion": "Lechuga, pollo, croutons, queso parmesano y aderezo César."
+    },
+    {
+      "nombre": "Pollo al horno con papas",
+      "tipo": "carne",
+      "descripcion": "Muslo de pollo al horno acompañado de papas rústicas."
+    },
+    {
+      "nombre": "Pizza margarita",
+      "tipo": "pizza",
+      "descripcion": "Salsa de tomate, mozzarella y albahaca fresca."
+    }
+  ]
+}
