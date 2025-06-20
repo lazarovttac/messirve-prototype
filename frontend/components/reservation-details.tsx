@@ -30,31 +30,31 @@ export function ReservationDetails({
       case "urgent":
         return (
           <Badge variant="destructive" className="rounded-lg">
-            Urgent
+            Urgente
           </Badge>
         );
       case "in-progress":
         return (
           <Badge variant="secondary" className="rounded-lg">
-            In Progress
+            En Progreso
           </Badge>
         );
       case "upcoming":
         return (
           <Badge variant="outline" className="rounded-lg">
-            Upcoming
+            Próximo
           </Badge>
         );
       case "completed":
         return (
           <Badge className="bg-status-completed text-white rounded-lg">
-            Completed
+            Completado
           </Badge>
         );
       default:
         return (
           <Badge variant="outline" className="rounded-lg">
-            Pending
+            Pendiente
           </Badge>
         );
     }
@@ -106,7 +106,7 @@ export function ReservationDetails({
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="rounded-lg">
-              Table {reservation.table}
+              Mesa {reservation.table}
             </Badge>
             <Badge variant="outline" className="rounded-lg">
               {reservation.meals.length}{" "}
