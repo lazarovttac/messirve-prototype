@@ -1,6 +1,52 @@
 # Mesirve - Prototipo
 
-Este proyecto consiste en una aplicación web con frontend en Next.js y backend en Node.js/Express con integración a Firebase y Gemini AI.
+Este proyecto es un prototipo de sistema de gestión de reservas para restaurantes.
+
+## Estructura del Proyecto
+
+- `frontend/`: Aplicación Next.js para el frontend
+- `backend/`: Servidor Node.js para el backend
+
+## Firebase Configuration
+
+Para conectar la aplicación con Firebase, crea un archivo `.env.local` en la carpeta `frontend/` con la siguiente configuración:
+
+```
+# Firebase Configuration
+NEXT_PUBLIC_FIREBASE_API_KEY=your-api-key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-auth-domain.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-storage-bucket.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-messaging-sender-id
+NEXT_PUBLIC_FIREBASE_APP_ID=your-app-id
+```
+
+Reemplaza los valores de ejemplo con tus credenciales reales de Firebase.
+
+## Funcionalidades Implementadas
+
+- Gestión de mesas (CRUD)
+- Gestión de reservas (CRUD)
+- Visualización de reservas por fecha
+- Generación de datos de prueba
+
+## Instalación
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### Backend
+
+```bash
+cd backend
+npm install
+npm run dev
+```
 
 ## 📋 Requisitos Previos
 

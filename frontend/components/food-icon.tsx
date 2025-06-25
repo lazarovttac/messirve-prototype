@@ -29,6 +29,27 @@ export function FoodIcon({ foodType, size = "md", className }: FoodIconProps) {
     lg: 22,
   };
 
+  // Map food types to the correct CSS class names
+  const getFoodIconClass = () => {
+    switch (foodTypeNormalized) {
+      case "bife":
+        return "food-icon-steak";
+      case "pasta":
+        return "food-icon-pasta";
+      case "salmón":
+      case "salmon":
+        return "food-icon-salmon";
+      case "hamburguesa":
+        return "food-icon-burger";
+      case "risotto":
+        return "food-icon-risotto";
+      case "pizza":
+        return "food-icon-pizza";
+      default:
+        return "food-icon-pasta"; // Default style
+    }
+  };
+
   const getIcon = () => {
     switch (foodTypeNormalized) {
       case "bife":
@@ -36,6 +57,7 @@ export function FoodIcon({ foodType, size = "md", className }: FoodIconProps) {
       case "pasta":
         return <UtensilsCrossed size={iconSize[size]} className="text-white" />;
       case "salmón":
+      case "salmon":
         return <Salad size={iconSize[size]} className="text-white" />;
       case "hamburguesa":
         return <Sandwich size={iconSize[size]} className="text-white" />;
@@ -52,7 +74,7 @@ export function FoodIcon({ foodType, size = "md", className }: FoodIconProps) {
     <div
       className={cn(
         "food-icon",
-        `food-icon-${foodTypeNormalized}`,
+        getFoodIconClass(),
         sizeClasses[size],
         className
       )}

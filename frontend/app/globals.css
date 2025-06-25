@@ -32,35 +32,6 @@
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-ring: 221.2 83.2% 53.3%;
   }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
-
-    --sidebar-background: 222.2 84% 4.9%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-border: 217.2 32.6% 17.5%;
-    --sidebar-accent: 217.2 91.2% 59.8%;
-    --sidebar-accent-foreground: 222.2 47.4% 11.2%;
-    --sidebar-ring: 224.3 76.3% 48%;
-  }
 }
 
 @layer base {
@@ -73,26 +44,14 @@
 }
 
 .food-icon {
-  position: relative;
   width: 32px;
   height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.food-icon::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0));
-  z-index: 1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
 }
 
 .food-icon-steak {
@@ -117,4 +76,50 @@
 
 .food-icon-pizza {
   background-color: theme("colors.food.pizza");
+}
+
+/* Status colors for meal preparations */
+.bg-status-urgent {
+  background-color: theme("colors.status.urgent");
+  color: white;
+}
+
+.bg-status-in-progress {
+  background-color: theme("colors.status.in-progress");
+  color: white;
+}
+
+.bg-status-upcoming {
+  background-color: theme("colors.status.upcoming");
+  color: rgba(0, 0, 0, 0.8);
+}
+
+.bg-status-completed {
+  background-color: theme("colors.status.completed");
+  color: white;
+}
+
+.bg-status-pending {
+  background-color: theme("colors.status.pending");
+  color: white;
+}
+
+.text-status-urgent {
+  color: theme("colors.status.urgent");
+}
+
+.text-status-in-progress {
+  color: theme("colors.status.in-progress");
+}
+
+.text-status-upcoming {
+  color: theme("colors.status.upcoming");
+}
+
+.text-status-completed {
+  color: theme("colors.status.completed");
+}
+
+.text-status-pending {
+  color: theme("colors.status.pending");
 }

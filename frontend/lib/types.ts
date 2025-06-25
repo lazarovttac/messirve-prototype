@@ -5,7 +5,11 @@ export type MealStatus =
   | "upcoming"
   | "pending";
 
-export type ReservationStatus = "confirmed" | "cancelled";
+export type ReservationStatus =
+  | "confirmed"
+  | "cancelled"
+  | "pending"
+  | "completed";
 
 export interface Meal {
   name: string;
@@ -28,4 +32,15 @@ export interface Customer {
   id: string;
   name: string;
   phoneNumber: string;
+}
+
+export interface Table {
+  id: string;
+  name: string;
+  people: number;
+}
+
+export interface TableAssignment {
+  id: string;
+  message: string;
 }

@@ -4,7 +4,7 @@
 import type React from "react";
 
 import { useState } from "react";
-import { Calendar, Settings } from "lucide-react"; //buscar si en la libreria de lucide react existe un icono de mesa
+import { Calendar, Settings, User, Utensils } from "lucide-react";
 
 import {
   Sidebar,
@@ -18,19 +18,15 @@ import {
   SidebarTrigger,
   SidebarInset,
 } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button"; // Este no se usa en este componente, podrías quitarlo si no se usa más
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Image from "next/image";
 
+import { CalendarView } from "@/components/calendar-view";
+import { TablesView } from "@/components/tables-view";
 
-import { CalendarView } from "@/components/calendar-view"; 
-import { TablesView } from "@/components/tables-view"; 
-// import { SettingsView } from "@/components/settings-view"; // Si lo creas, impórtalo aquí
-
-export function DashboardShell() { // Ya no necesita 'children' como prop externa
+export function DashboardShell() {
   const [activeTab, setActiveTab] = useState("calendar");
 
-  // Función para renderizar el contenido basado en la pestaña activa
   const renderContent = () => {
     switch (activeTab) {
       case "calendar":
@@ -38,11 +34,12 @@ export function DashboardShell() { // Ya no necesita 'children' como prop extern
       case "tables":
         return <TablesView />;
       case "settings":
-        // return <SettingsView />; // Cuando la crees, descomenta y úsala
         return (
           <div className="p-6">
             <h2 className="text-2xl font-bold mb-4">Configuración</h2>
-            <p>Aquí puedes gestionar las opciones de tu cuenta y restaurante.</p>
+            <p>
+              Aquí puedes gestionar las opciones de tu cuenta y restaurante.
+            </p>
           </div>
         );
       default:
@@ -76,7 +73,8 @@ export function DashboardShell() { // Ya no necesita 'children' como prop extern
                   onClick={() => setActiveTab("tables")}
                   className="rounded-xl h-10"
                 >
-                  <span>Gestor de mesas</span>
+                  <Utensils className="h-5 w-5" />
+                  <span>Mesas</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
@@ -95,7 +93,7 @@ export function DashboardShell() { // Ya no necesita 'children' como prop extern
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Avatar>
-                  <AvatarImage src="/placeholder.svg?height=40&width=40" />
+                  <User className="h-5 w-5" />
                   <AvatarFallback>JM</AvatarFallback>
                 </Avatar>
                 <div>
@@ -113,9 +111,7 @@ export function DashboardShell() { // Ya no necesita 'children' como prop extern
             <SidebarTrigger />
             <div className="ml-4 text-lg font-medium">Panel de Control</div>
           </div>
-          <div className="p-6">
-            {renderContent()}
-          </div>
+          <div className="p-6">{renderContent()}</div>
         </SidebarInset>
       </div>
     </SidebarProvider>
