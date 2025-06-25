@@ -4,7 +4,7 @@
 import type React from "react";
 
 import { useState } from "react";
-import { Calendar, Tables, Settings } from "lucide-react"; //buscar si en la libreria de lucide react existe un icono de mesa
+import { Calendar, Settings } from "lucide-react"; //buscar si en la libreria de lucide react existe un icono de mesa
 
 import {
   Sidebar,
@@ -76,7 +76,6 @@ export function DashboardShell() { // Ya no necesita 'children' como prop extern
                   onClick={() => setActiveTab("tables")}
                   className="rounded-xl h-10"
                 >
-                  <Tables className="h-5 w-5" />
                   <span>Gestor de mesas</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
