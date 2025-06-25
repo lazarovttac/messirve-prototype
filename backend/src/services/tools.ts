@@ -85,7 +85,10 @@ export class ReservationTools {
       if (!validation.isValid) {
         return validation.message;
       }
-      const table = await this.db.assignTable(reservationTime);
+      const table = await this.db.assignTable(reservationTime, people); //modificado
+      if (table.id == "-1") {
+        return table.message;
+      }
       const reservation = {
         customerId: this.customerId,
         customerName: trimmedName,
@@ -167,12 +170,33 @@ export class ReservationTools {
       if (!validation.isValid) {
         return validation.message;
       }
-      const table = await this.db.assignTable(reservationTime);
-      await this.db.updateReservation(reservationId, {
-        time: reservationTime,
-        table,
-      });
-      return `Horario de la reserva cambiado a ${newTime} en la mesa ${table}.`;
+      const reservation = await this.db.getReservationById(reservationId);
+      if (!reservation) {
+        throw new Error('no existe una reservacion');
+      }
+      const tableAssignment = await this.db.assignTable(reservationTime, reservation.people);
+      if (tableAssignment.id == "-1" ){
+        throw new Error (tableAssignment.message);
+      }
+      else {
+        const tables =  await this.db.getAllTables();
+        let pincheMesaReservada;
+        for (let table of tables) {
+          if (table.id == tableAssignment.id) {
+            pincheMesaReservada = table;
+          }
+        }
+        if (pincheMesaReservada) {
+          const table = String(pincheMesaReservada.id);
+          await this.db.updateReservation(reservationId, {
+            time: reservationTime,
+            table
+          });
+        }
+
+      }
+
+      return `Horario de la reserva cambiado a ${newTime} en la mesa ${tableAssignment.id}.`;
     } catch (error) {
       return `Error al cambiar el horario de la reserva: ${error}`;
     }

@@ -1,5 +1,5 @@
 import { FirebaseClient } from "../config/firebase";
-import { Customer, Reservation, Meal } from "../lib/types";
+import { Customer, Reservation, Meal, Table, TableAssignment } from "../lib/types";
 
 export class DatabaseService {
   private firebase: FirebaseClient;
@@ -188,19 +188,79 @@ export class DatabaseService {
     }
   }
 
-  // Table assignment: assign the first available table not reserved at the given time
-  async assignTable(time: Date): Promise<string> {
-    // For simplicity, assume tables are numbered 1-20
+  async getAllTables(): Promise<Table[]> { //agregado
+    try {
+      const snapshot = await this.firebase.db
+        .collection("tables")
+        .orderBy("chairs", "asc") 
+        .get();
+
+      return snapshot.docs.map(
+        (doc: any) => ({ id: doc.id, ...doc.data() } as Table) //el ...doc.data elimina los corchetes del objeto. 
+      );
+    } catch (error) {
+      console.error("Error al obtener todas las mesas:", error);
+      throw error;
+    }
+  }
+
+  async assignTable(time: Date, amountOfPeople: number ): Promise<TableAssignment> { //modificado
+    try {
+
+      const allRestaurantTables = await this.getAllTables();
+      const allReservations = await this.getAllReservations();
+      const reservedTables = allReservations
+      .filter((r) => new Date(r.time).getTime() === time.getTime())
+      .map((r) => r.table);
+      for (let table of allRestaurantTables) {
+        if (!reservedTables.includes(table.id) && (amountOfPeople <= table.chairs)){
+          const tableAssignment = {
+            "id": table.id, 
+            "message": ""
+          }
+          return tableAssignment;
+        }
+      }
+      const tableAssignment = {
+        "id": "-1", 
+        "message": "no se pudo asignar la mesa"
+      }
+      return tableAssignment;
+    }
+    catch(error) {
+      throw new Error('Perdón pero no tenemos mesas disponibles en ese horario');
+    }
+    
+
+      /*
+  async assignTable(time: Date, amountOfPeople: number ): Promise<string> { //modificado
+    const allRestaurantTables = await this.getAllTables();
     const allReservations = await this.getAllReservations();
     const reservedTables = allReservations
       .filter((r) => new Date(r.time).getTime() === time.getTime())
       .map((r) => r.table);
-    for (let i = 1; i <= 20; i++) {
+    for (let table of allRestaurantTables) {
+      if (!reservedTables.includes(table.id) && (amountOfPeople <= table.chairs)){
+        return table.toString();
+      }
+    }
+
+
+
+
+
+    const allRestaurantTables = await this.getAllTables();
+    const allReservations = await this.getAllReservations();
+    const reservedTables = allReservations
+      .filter((r) => new Date(r.time).getTime() === time.getTime())
+      .map((r) => r.table);
+
+    for (let i = 1; i <= maxTables; i++) {
       if (!reservedTables.includes(i.toString())) {
         return i.toString();
       }
-    }
-    throw new Error("No hay mesas disponibles en el horario seleccionado.");
+    }*/
+    
   }
 
   async getOverlappingReservations(

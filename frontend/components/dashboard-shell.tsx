@@ -1,9 +1,10 @@
+// src/components/dashboard-shell.tsx
 "use client";
 
 import type React from "react";
 
 import { useState } from "react";
-import { Calendar, Clock, Home, Settings, Users } from "lucide-react";
+import { Calendar, Tables, Settings } from "lucide-react"; //buscar si en la libreria de lucide react existe un icono de mesa
 
 import {
   Sidebar,
@@ -17,12 +18,37 @@ import {
   SidebarTrigger,
   SidebarInset,
 } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button"; // Este no se usa en este componente, podrías quitarlo si no se usa más
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Image from "next/image";
 
-export function DashboardShell({ children }: { children: React.ReactNode }) {
+
+import { CalendarView } from "@/components/calendar-view"; 
+import { TablesView } from "@/components/tables-view"; 
+// import { SettingsView } from "@/components/settings-view"; // Si lo creas, impórtalo aquí
+
+export function DashboardShell() { // Ya no necesita 'children' como prop externa
   const [activeTab, setActiveTab] = useState("calendar");
+
+  // Función para renderizar el contenido basado en la pestaña activa
+  const renderContent = () => {
+    switch (activeTab) {
+      case "calendar":
+        return <CalendarView />;
+      case "tables":
+        return <TablesView />;
+      case "settings":
+        // return <SettingsView />; // Cuando la crees, descomenta y úsala
+        return (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold mb-4">Configuración</h2>
+            <p>Aquí puedes gestionar las opciones de tu cuenta y restaurante.</p>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <SidebarProvider>
@@ -36,16 +62,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
-                  isActive={activeTab === "dashboard"}
-                  onClick={() => setActiveTab("dashboard")}
-                  className="rounded-xl h-10"
-                >
-                  <Home className="h-5 w-5" />
-                  <span>Inicio</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
                   isActive={activeTab === "calendar"}
                   onClick={() => setActiveTab("calendar")}
                   className="rounded-xl h-10"
@@ -56,22 +72,12 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton
-                  isActive={activeTab === "reservations"}
-                  onClick={() => setActiveTab("reservations")}
+                  isActive={activeTab === "tables"}
+                  onClick={() => setActiveTab("tables")}
                   className="rounded-xl h-10"
                 >
-                  <Clock className="h-5 w-5" />
-                  <span>Reservas</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  isActive={activeTab === "customers"}
-                  onClick={() => setActiveTab("customers")}
-                  className="rounded-xl h-10"
-                >
-                  <Users className="h-5 w-5" />
-                  <span>Clientes</span>
+                  <Tables className="h-5 w-5" />
+                  <span>Gestor de mesas</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
@@ -108,7 +114,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             <SidebarTrigger />
             <div className="ml-4 text-lg font-medium">Panel de Control</div>
           </div>
-          <div className="p-6">{children}</div>
+          <div className="p-6">
+            {renderContent()}
+          </div>
         </SidebarInset>
       </div>
     </SidebarProvider>
