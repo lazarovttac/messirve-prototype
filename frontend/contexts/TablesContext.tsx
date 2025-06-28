@@ -40,7 +40,7 @@ const TablesContext = createContext<TablesContextType | undefined>(undefined);
 export const useTables = () => {
   const context = useContext(TablesContext);
   if (!context) {
-    throw new Error("useTables must be used within a TablesProvider");
+    throw new Error("useTables debe usarse dentro de un TablesProvider");
   }
   return context;
 };
@@ -71,7 +71,7 @@ export const TablesProvider: React.FC<TablesProviderProps> = ({ children }) => {
       setTables(tablesData);
     } catch (err) {
       console.error("Error fetching tables:", err);
-      setError("Failed to load tables. Please try again.");
+      setError("Error al cargar las mesas. Por favor intenta nuevamente.");
     } finally {
       setLoading(false);
     }
@@ -93,7 +93,7 @@ export const TablesProvider: React.FC<TablesProviderProps> = ({ children }) => {
       return null;
     } catch (err) {
       console.error(`Error getting table ${id}:`, err);
-      setError(`Failed to retrieve table. Please try again.`);
+      setError(`Error al obtener la mesa. Por favor intenta nuevamente.`);
       return null;
     }
   };
@@ -109,7 +109,7 @@ export const TablesProvider: React.FC<TablesProviderProps> = ({ children }) => {
       return docRef.id;
     } catch (err) {
       console.error("Error creating table:", err);
-      setError("Failed to create table. Please try again.");
+      setError("Error al crear la mesa. Por favor intenta nuevamente.");
       throw err;
     }
   };
@@ -126,7 +126,7 @@ export const TablesProvider: React.FC<TablesProviderProps> = ({ children }) => {
       await fetchTables();
     } catch (err) {
       console.error(`Error updating table ${id}:`, err);
-      setError("Failed to update table. Please try again.");
+      setError("Error al actualizar la mesa. Por favor intenta nuevamente.");
       throw err;
     }
   };
@@ -140,7 +140,7 @@ export const TablesProvider: React.FC<TablesProviderProps> = ({ children }) => {
       await fetchTables();
     } catch (err) {
       console.error(`Error deleting table ${id}:`, err);
-      setError("Failed to delete table. Please try again.");
+      setError("Error al eliminar la mesa. Por favor intenta nuevamente.");
       throw err;
     }
   };

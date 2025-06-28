@@ -171,10 +171,10 @@ export function CalendarView() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2">
-          <Card className="shadow-md rounded-2xl border-none">
-            <CardHeader className="pb-2">
-              <CardTitle>Reservas</CardTitle>
-              <CardDescription>
+          <Card className="rounded-2xl border-none">
+            <CardHeader className="p-4 pt-8">
+              <CardTitle className="pl-[20px]">Reservas</CardTitle>
+              <CardDescription className="pl-[20px]">
                 {filteredReservations.length} reservas para el{" "}
                 {format(currentDate, "d 'de' MMMM", { locale: es })}
               </CardDescription>
@@ -204,7 +204,7 @@ export function CalendarView() {
                         onClick={() => setSelectedReservation(reservation)}
                       >
                         <div className="flex items-center justify-between">
-                          <div className="font-medium">
+                          <div className="font-bold pb-2">
                             {reservation.customerName}
                           </div>
                           <div className="text-sm text-muted-foreground">
@@ -213,7 +213,7 @@ export function CalendarView() {
                         </div>
                         <div className="flex items-center gap-2 mt-1">
                           <Badge variant="outline" className="rounded-lg">
-                            Mesa {reservation.table}
+                            {reservation.tableName || reservation.table}
                           </Badge>
                           <div className="text-sm text-muted-foreground">
                             {reservation.people} personas |{" "}
@@ -230,7 +230,9 @@ export function CalendarView() {
                               className="flex items-center gap-2"
                             >
                               <FoodIcon foodType={meal.name} size="sm" />
-                              <span className="text-sm">{meal.name}</span>
+                              <span className="text-sm font-medium">
+                                {meal.name}
+                              </span>
                             </div>
                           ))}
                         </div>

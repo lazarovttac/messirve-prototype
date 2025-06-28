@@ -2,9 +2,9 @@ import { GoogleGenAI, Part, FunctionCall } from "@google/genai";
 import { Settings } from "../config/settings";
 import { DatabaseService } from "./database";
 import { ReservationTools, ToolFunction, bindToolsToInstance } from "./tools";
-import { Customer } from "../lib/types";
-import * as fs from "fs";
-import * as path from "path";
+import { Customer, Reservation, Meal, RestaurantConfig } from "../lib/types";
+import path from "path";
+import fs from "fs";
 
 const RESTAURANT_CONFIG_PATH = path.join(
   __dirname,
@@ -21,11 +21,6 @@ function loadRestaurantConfig() {
   }
 }
 
-function buildMenuList(menu: any[]): string {
-  if (!menu || menu.length === 0) return "(menú no disponible)";
-  return menu.map((item) => `- ${item.nombre}: ${item.descripcion}`).join("\n");
-}
-
 export interface ChatHistory {
   role: string;
   parts: Part[];
@@ -35,25 +30,6 @@ export interface TelegramUser {
   id: string;
   name: string;
   phoneNumber: string;
-}
-
-function formatReservationsForPrompt(reservations: any[]): string {
-  if (!reservations || reservations.length === 0)
-    return "(No hay reservas actuales)";
-  return reservations
-    .map(
-      (r) =>
-        `ID: ${r.id}\n  Fecha: ${new Date(r.time).toLocaleString(
-          "es-ES"
-        )}\n  A nombre de: ${r.customerName}\n  Número de personas: ${
-          r.people
-        }\n  Mesa: ${r.table}\n  Estado: ${r.status}\n  Platos: ${
-          r.meals && r.meals.length > 0
-            ? r.meals.map((m: any) => m.name).join(", ")
-            : "(sin comidas)"
-        }`
-    )
-    .join("\n---\n");
 }
 
 export class ChatService {
@@ -74,44 +50,120 @@ export class ChatService {
   private async getSystemInstructionWithReservations(
     customerId: string
   ): Promise<string> {
-    const promptPath = path.join(__dirname, "../prompts/chat.md");
+    const promptPath = path.join(__dirname, "../prompts/chat.xml");
     try {
       let prompt = fs.readFileSync(promptPath, "utf-8");
       const now = new Date();
       // Cargar datos del restaurante
       const rc = this.restaurantConfig;
-      prompt = prompt.replace(
-        "{{currentDateTime}}",
-        now.toLocaleString("es-ES", {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-          hour: "numeric",
-          minute: "numeric",
-          timeZoneName: "short",
-        })
-      );
+
+      // Formatear fecha actual
+      const currentDateTime = now.toLocaleString("es-ES", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        timeZoneName: "short",
+      });
+
+      // Reemplazar datos del restaurante en formato XML
       if (rc) {
-        prompt = prompt.replace("{{nombre}}", rc.nombre || "");
-        prompt = prompt.replace("{{direccion}}", rc.direccion || "");
-        prompt = prompt.replace("{{googleMaps}}", rc.googleMaps || "");
-        prompt = prompt.replace("{{descripcion}}", rc.descripcion || "");
-        prompt = prompt.replace("{{menuOnline}}", rc.menuOnline || "");
-        prompt = prompt.replace("{{menuLista}}", buildMenuList(rc.menu));
+        const restaurantData = `
+          <name>${rc.name || ""}</name>
+          <address>${rc.address || ""}</address>
+          <Maps_link>${rc.googleMaps || ""}</Maps_link>
+          <description>${rc.description || ""}</description>
+          <social_media_links>${JSON.stringify(
+            rc.socialMedia || {}
+          )}</social_media_links>
+          <online_menu_link>${rc.menuOnline || ""}</online_menu_link>
+          <menu_details>${this.buildMenuXML(rc.menu)}</menu_details>`;
+
+        prompt = prompt.replace(
+          /(<restaurant_info>)([\s\S]*?)(<\/restaurant_info>)/,
+          `$1${restaurantData}$3`
+        );
       }
-      // Obtener reservas actuales del cliente
+
+      // Obtener y formatear reservas actuales del cliente
       const reservations = await this.db.getReservationsByCustomer(customerId);
-      console.log(reservations);
-      prompt = prompt.replace(
-        "{{reservasCliente}}",
-        formatReservationsForPrompt(reservations)
+      const reservationsXML = this.formatReservationsAsXML(reservations);
+      prompt = prompt.replace("{{reservasCliente}}", reservationsXML);
+      prompt = prompt.replace("{{currentDateTime}}", currentDateTime);
+
+      // Guardar prompt final para debugging
+      const debugPath = path.join(
+        __dirname,
+        "../prompts/debug_last_prompt.xml"
       );
+      fs.writeFileSync(debugPath, prompt, "utf-8");
+      console.log("Prompt guardado para debug en:", debugPath);
+
       return prompt;
     } catch (error) {
-      console.error("Error al leer el archivo de prompt:", error);
+      console.error("Error al procesar el prompt:", error);
       return `Eres Graciela, asistente de un restaurante. Ayudas a los clientes a hacer, modificar y cancelar reservas, y gestionar sus pedidos. Siempre confirma las acciones, pide aclaraciones si es necesario y sé educada.`;
     }
+  }
+
+  private buildMenuXML(menu: any[]): string {
+    if (!menu || !Array.isArray(menu)) return "";
+    return menu
+      .map(
+        (item) => `
+      <menu_item>
+        <name>${item.name || ""}</name>
+        <description>${item.description || ""}</description>
+        <price>${item.price || ""}</price>
+        <type>${item.type || ""}</type>
+      </menu_item>
+    `
+      )
+      .join("");
+  }
+
+  private formatReservationsAsXML(reservations: Reservation[]): string {
+    if (!reservations || !Array.isArray(reservations))
+      return "<reservations></reservations>";
+
+    const reservationsXML = reservations
+      .map(
+        (res) => `
+        <reservation>
+          <id>${res.id || ""}</id>
+          <time>${new Date(res.time).toISOString() || ""}</time>
+          <people>${res.people || ""}</people>
+          <customer_id>${res.customerId || ""}</customer_id>
+          <customer_name>${res.customerName || ""}</customer_name>
+          <table>${res.table || ""}</table>
+          <status>${res.status || ""}</status>
+          ${
+            res.meals
+              ? `
+          <meals>
+            ${res.meals
+              .map(
+                (meal) => `
+            <meal>
+              <name>${meal.name || ""}</name>
+              <prep_time>${meal.prepTime || ""}</prep_time>
+              <status>${meal.status || ""}</status>
+            </meal>
+            `
+              )
+              .join("")}
+          </meals>
+          `
+              : ""
+          }
+        </reservation>
+      `
+      )
+      .join("");
+
+    return `<reservations>${reservationsXML}</reservations>`;
   }
 
   async processQuery(

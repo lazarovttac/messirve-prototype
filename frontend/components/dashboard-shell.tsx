@@ -4,7 +4,13 @@
 import type React from "react";
 
 import { useState } from "react";
-import { Calendar, Settings, User, Utensils } from "lucide-react";
+import {
+  Calendar,
+  Settings,
+  User,
+  Utensils,
+  AlignVerticalJustifyCenter,
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -51,9 +57,9 @@ export function DashboardShell() {
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-slate-50">
         <Sidebar className="border-r shadow-sm">
-          <SidebarHeader className="flex flex-row gap-2 items-center border-b px-4 py-2">
-            <Image src="/logo.png" alt="Logo" width={32} height={32} />
-            <span className="text-lg font-bold">Messirve</span>
+          <SidebarHeader className="flex flex-row gap-2 items-center border-b px-4 py-4">
+            <Image src="/logo.png" alt="Logo" width={24} height={24} />
+            <span className="text-lg font-bold">Brothers Bar</span>
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
@@ -73,8 +79,18 @@ export function DashboardShell() {
                   onClick={() => setActiveTab("tables")}
                   className="rounded-xl h-10"
                 >
-                  <Utensils className="h-5 w-5" />
+                  <AlignVerticalJustifyCenter className="h-5 w-5" />
                   <span>Mesas</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  isActive={activeTab === "menu"}
+                  onClick={() => setActiveTab("menu")}
+                  className="rounded-xl h-10"
+                >
+                  <Utensils className="h-5 w-5" />
+                  <span>Menú</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
@@ -93,13 +109,12 @@ export function DashboardShell() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Avatar>
-                  <User className="h-5 w-5" />
-                  <AvatarFallback>JM</AvatarFallback>
+                  <AvatarFallback>MC</AvatarFallback>
                 </Avatar>
                 <div>
-                  <div className="font-medium">Juan Manager</div>
+                  <div className="font-medium">Mario Castañeda</div>
                   <div className="text-xs text-muted-foreground">
-                    Restaurante Principal
+                    Brothers Bar
                   </div>
                 </div>
               </div>

@@ -91,10 +91,10 @@ export function ReservationDetails({
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <CardTitle>Reservation Details</CardTitle>
+          <CardTitle>Detalles de la Reserva</CardTitle>
         </div>
         <CardDescription>
-          {format(reservation.time, "EEEE, MMMM d, yyyy")} at{" "}
+          {format(reservation.time, "EEEE, d 'de' MMMM 'de' yyyy")} a las{" "}
           {format(reservation.time, "h:mm a")}
         </CardDescription>
       </CardHeader>
@@ -102,21 +102,24 @@ export function ReservationDetails({
         <div className="flex flex-col space-y-1.5">
           <div className="flex items-center gap-2">
             <User className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">{reservation.customer}</span>
+            <span className="font-medium">{reservation.customerName}</span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-sm text-muted-foreground">Mesa</span>
+            <span className="font-medium">
+              {reservation.tableName || `Mesa ${reservation.table}`}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="rounded-lg">
-              Mesa {reservation.table}
-            </Badge>
-            <Badge variant="outline" className="rounded-lg">
               {reservation.meals.length}{" "}
-              {reservation.meals.length === 1 ? "meal" : "meals"}
+              {reservation.meals.length === 1 ? "pedido" : "pedidos"}
             </Badge>
           </div>
         </div>
         <Separator />
         <div>
-          <h3 className="font-medium mb-2">Meal Preparation</h3>
+          <h3 className="font-medium mb-2">Preparación de Comidas</h3>
           <div className="space-y-3">
             {reservation.meals.map((meal, index) => (
               <div
@@ -132,7 +135,9 @@ export function ReservationDetails({
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{meal.prepTime} min prep time</span>
+                  <span className="text-sm">
+                    {meal.prepTime} min de preparación
+                  </span>
                 </div>
                 <Progress
                   value={getProgressValue(meal.status)}
@@ -141,7 +146,7 @@ export function ReservationDetails({
                 {meal.status === "urgent" && (
                   <div className="flex items-center gap-1 text-status-urgent text-sm">
                     <AlertCircle className="h-4 w-4" />
-                    <span>Start preparation now!</span>
+                    <span>¡Comienza la preparación ahora!</span>
                   </div>
                 )}
               </div>
@@ -151,14 +156,14 @@ export function ReservationDetails({
       </CardContent>
       <CardFooter className="flex justify-between border-t pt-4">
         <Button variant="outline" onClick={onClose} className="rounded-xl">
-          Back
+          Volver
         </Button>
         <div className="flex gap-2">
           <Button variant="secondary" className="rounded-xl">
-            Edit Reservation
+            Editar reserva
           </Button>
           <Button variant="default" className="rounded-xl">
-            Update Status
+            Actualizar estado
           </Button>
         </div>
       </CardFooter>

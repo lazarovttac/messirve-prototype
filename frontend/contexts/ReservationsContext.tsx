@@ -8,7 +8,7 @@ import React, {
   ReactNode,
 } from "react";
 import { db } from "@/lib/firebase";
-import { Reservation, Meal } from "@/lib/types";
+import { Reservation, Meal, Table } from "@/lib/types";
 import {
   collection,
   doc,
@@ -22,6 +22,7 @@ import {
   where,
   Timestamp,
   serverTimestamp,
+  onSnapshot,
 } from "firebase/firestore";
 
 interface ReservationsContextType {
@@ -51,34 +52,43 @@ export const useReservations = () => {
   const context = useContext(ReservationsContext);
   if (!context) {
     throw new Error(
-      "useReservations must be used within a ReservationsProvider"
+      "useReservations debe usarse dentro de un ReservationsProvider"
     );
   }
   return context;
 };
 
-interface ReservationsProviderProps {
-  children: ReactNode;
-}
-
-export const ReservationsProvider: React.FC<ReservationsProviderProps> = ({
-  children,
-}) => {
+export function ReservationsProvider({ children }: { children: ReactNode }) {
   const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [tables, setTables] = useState<Table[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Convert Firebase timestamp to JavaScript Date
-  const convertTimestampToDate = (reservation: any): Reservation => {
-    return {
-      ...reservation,
-      time:
-        reservation.time instanceof Timestamp
-          ? reservation.time.toDate()
-          : new Date(reservation.time),
-    };
+  // Function to convert Firestore timestamp to Date
+  const convertTimestampToDate = (data: any): Reservation => {
+    if (data.time instanceof Timestamp) {
+      return { ...data, time: data.time.toDate() };
+    }
+    return data;
   };
 
+  // Fetch tables and listen for changes
+  useEffect(() => {
+    const tablesUnsubscribe = onSnapshot(
+      collection(db, "tables"),
+      (snapshot) => {
+        const tablesData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Table[];
+        setTables(tablesData);
+      }
+    );
+
+    return () => tablesUnsubscribe();
+  }, []);
+
+  // Function to fetch reservations with table names
   const fetchReservations = async () => {
     try {
       setLoading(true);
@@ -90,25 +100,74 @@ export const ReservationsProvider: React.FC<ReservationsProviderProps> = ({
 
       const reservationsData: Reservation[] = querySnapshot.docs.map((doc) => {
         const data = doc.data();
-        return convertTimestampToDate({
+        // Convert Firestore timestamp to Date
+        const time =
+          data.time instanceof Timestamp
+            ? data.time.toDate()
+            : new Date(data.time);
+
+        // Find the table name if available
+        const tableId = data.table;
+        const tableInfo = tables.find((t) => t.id === tableId);
+
+        return {
           id: doc.id,
           ...data,
+          time,
           meals: Array.isArray(data.meals) ? data.meals : [],
-        });
+          tableName: tableInfo?.name || "Mesa " + tableId.substring(0, 5),
+        } as Reservation;
       });
 
       setReservations(reservationsData);
     } catch (err) {
       console.error("Error fetching reservations:", err);
-      setError("Failed to load reservations. Please try again.");
+      setError("Error al cargar las reservas. Por favor intenta nuevamente.");
     } finally {
       setLoading(false);
     }
   };
 
+  // Initial fetch and setup listener for reservations
   useEffect(() => {
     fetchReservations();
-  }, []);
+
+    // Set up listener for real-time updates
+    const unsubscribe = onSnapshot(
+      query(collection(db, "reservations"), orderBy("time")),
+      (snapshot) => {
+        const reservationsData = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          // Convert Firestore timestamp to Date
+          const time =
+            data.time instanceof Timestamp
+              ? data.time.toDate()
+              : new Date(data.time);
+
+          // Find the table name if available
+          const tableId = data.table;
+          const tableInfo = tables.find((t) => t.id === tableId);
+
+          return {
+            id: doc.id,
+            ...data,
+            time,
+            meals: Array.isArray(data.meals) ? data.meals : [],
+            tableName: tableInfo?.name || "Mesa " + tableId.substring(0, 5),
+          } as Reservation;
+        });
+
+        setReservations(reservationsData);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error listening to reservations:", error);
+        setError("Error al escuchar cambios en las reservas.");
+      }
+    );
+
+    return () => unsubscribe();
+  }, [tables]);
 
   const getReservation = async (id: string): Promise<Reservation | null> => {
     try {
@@ -127,7 +186,7 @@ export const ReservationsProvider: React.FC<ReservationsProviderProps> = ({
       return null;
     } catch (err) {
       console.error(`Error getting reservation ${id}:`, err);
-      setError(`Failed to retrieve reservation. Please try again.`);
+      setError(`Error al obtener la reserva. Por favor intenta nuevamente.`);
       return null;
     }
   };
@@ -153,15 +212,23 @@ export const ReservationsProvider: React.FC<ReservationsProviderProps> = ({
 
       return querySnapshot.docs.map((doc) => {
         const data = doc.data();
+
+        // Find the table name if available
+        const tableId = data.table;
+        const tableInfo = tables.find((t) => t.id === tableId);
+
         return convertTimestampToDate({
           id: doc.id,
           ...data,
           meals: Array.isArray(data.meals) ? data.meals : [],
+          tableName: tableInfo?.name || "Mesa " + tableId.substring(0, 5),
         });
       });
     } catch (err) {
       console.error("Error fetching reservations by date:", err);
-      setError("Failed to load reservations by date. Please try again.");
+      setError(
+        "Error al cargar las reservas por fecha. Por favor intenta nuevamente."
+      );
       return [];
     }
   };
@@ -181,15 +248,24 @@ export const ReservationsProvider: React.FC<ReservationsProviderProps> = ({
 
       return querySnapshot.docs.map((doc) => {
         const data = doc.data();
+
+        // Find the table name if available
+        const currentTableId = data.table;
+        const tableInfo = tables.find((t) => t.id === currentTableId);
+
         return convertTimestampToDate({
           id: doc.id,
           ...data,
           meals: Array.isArray(data.meals) ? data.meals : [],
+          tableName:
+            tableInfo?.name || "Mesa " + currentTableId.substring(0, 5),
         });
       });
     } catch (err) {
       console.error(`Error fetching reservations for table ${tableId}:`, err);
-      setError("Failed to load table reservations. Please try again.");
+      setError(
+        "Error al cargar las reservas de la mesa. Por favor intenta nuevamente."
+      );
       return [];
     }
   };
@@ -213,7 +289,7 @@ export const ReservationsProvider: React.FC<ReservationsProviderProps> = ({
       return docRef.id;
     } catch (err) {
       console.error("Error creating reservation:", err);
-      setError("Failed to create reservation. Please try again.");
+      setError("Error al crear la reserva. Por favor intenta nuevamente.");
       throw err;
     }
   };
@@ -233,7 +309,7 @@ export const ReservationsProvider: React.FC<ReservationsProviderProps> = ({
       await fetchReservations();
     } catch (err) {
       console.error(`Error updating reservation ${id}:`, err);
-      setError("Failed to update reservation. Please try again.");
+      setError("Error al actualizar la reserva. Por favor intenta nuevamente.");
       throw err;
     }
   };
@@ -247,7 +323,7 @@ export const ReservationsProvider: React.FC<ReservationsProviderProps> = ({
       await fetchReservations();
     } catch (err) {
       console.error(`Error deleting reservation ${id}:`, err);
-      setError("Failed to delete reservation. Please try again.");
+      setError("Error al eliminar la reserva. Por favor intenta nuevamente.");
       throw err;
     }
   };
@@ -355,4 +431,4 @@ export const ReservationsProvider: React.FC<ReservationsProviderProps> = ({
       {children}
     </ReservationsContext.Provider>
   );
-};
+}

@@ -43,6 +43,50 @@
   }
 }
 
+@keyframes icon-rotate {
+  0% {
+    transform: perspective(800px) rotateY(-10deg);
+  }
+  50% {
+    transform: perspective(800px) rotateY(10deg);
+  }
+  100% {
+    transform: perspective(800px) rotateY(-10deg);
+  }
+}
+
+@keyframes hue-shift {
+  0% {
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    filter: hue-rotate(5deg);
+  }
+  100% {
+    filter: hue-rotate(0deg);
+  }
+}
+
+[data-sidebar="menu-item"] {
+  position: relative;
+  transition: 0.2s ease;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background: white;
+}
+
+[data-sidebar="menu-item"]:hover {
+  transform: translateY(-2px);
+  background: hsl(var(--sidebar-accent));
+}
+
+[data-sidebar="menu-item"] > [data-sidebar="menu-button"] {
+  position: relative;
+  z-index: 0;
+  color: hsl(var(--sidebar-foreground));
+  padding: 20px;
+}
+
 .food-icon {
   width: 32px;
   height: 32px;
@@ -50,32 +94,62 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
+  animation: icon-rotate 2s ease-in-out infinite;
+  transform-style: preserve-3d;
+  will-change: transform;
 }
 
 .food-icon-steak {
-  background-color: theme("colors.food.steak");
+  background: linear-gradient(135deg, #e53935 0%, #8e2de2 100%);
 }
 
 .food-icon-pasta {
-  background-color: theme("colors.food.pasta");
+  background: linear-gradient(135deg, #ffd54f 0%, #ff9800 100%);
 }
 
 .food-icon-salmon {
-  background-color: theme("colors.food.salmon");
+  background: linear-gradient(135deg, #ff9a8b 0%, #ff6a88 100%);
 }
 
 .food-icon-burger {
-  background-color: theme("colors.food.burger");
+  background: linear-gradient(135deg, #a1887f 0%, #6d4c41 100%);
 }
 
 .food-icon-risotto {
-  background-color: theme("colors.food.risotto");
+  background: linear-gradient(135deg, #ffeb3b 0%, #ff9800 100%);
 }
 
 .food-icon-pizza {
-  background-color: theme("colors.food.pizza");
+  background: linear-gradient(135deg, #ff5722 0%, #f44336 100%);
+}
+
+.food-icon-dessert {
+  background: linear-gradient(135deg, #e91e63 0%, #9c27b0 100%);
+}
+
+.food-icon-icecream {
+  background: linear-gradient(135deg, #90caf9 0%, #1976d2 100%);
+}
+
+.food-icon-cake {
+  background: linear-gradient(135deg, #f48fb1 0%, #d81b60 100%);
+}
+
+.food-icon-cookie {
+  background: linear-gradient(135deg, #bcaaa4 0%, #795548 100%);
+}
+
+.food-icon-wine {
+  background: linear-gradient(135deg, #7b1fa2 0%, #4a148c 100%);
+}
+
+.food-icon-fish {
+  background: linear-gradient(135deg, #4fc3f7 0%, #0288d1 100%);
+}
+
+.food-icon-grape {
+  background: linear-gradient(135deg, #9575cd 0%, #512da8 100%);
 }
 
 /* Status colors for meal preparations */

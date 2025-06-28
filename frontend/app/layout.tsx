@@ -6,9 +6,9 @@ import { AppProvider } from "@/contexts/AppContext";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Restaurant Manager Dashboard",
+  title: "Panel de Control del Restaurante",
   description:
-    "Dashboard for restaurant managers to oversee table reservations and meal preparations",
+    "Panel de control para gerentes de restaurantes para supervisar reservas de mesas y preparación de comidas",
   generator: "v0.dev",
 };
 
@@ -18,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning>
       <body className={inter.className}>
         <AppProvider>{children}</AppProvider>
       </body>

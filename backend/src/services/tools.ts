@@ -1,6 +1,6 @@
 import { FunctionDeclaration, Type } from "@google/genai";
 import { DatabaseService } from "./database";
-import { Meal } from "../lib/types";
+import { Meal, Reservation, MealStatus } from "../lib/types";
 
 export interface ToolFunction {
   declaration: FunctionDeclaration;
@@ -77,30 +77,53 @@ export class ReservationTools {
       if (isNaN(reservationTime.getTime())) {
         return "La fecha y hora proporcionada no es válida.";
       }
+
       const trimmedName = customerName ? customerName.trim() : "";
       const validation = await this.validateReservationTime(
         reservationTime,
         this.customerId
       );
+      
       if (!validation.isValid) {
         return validation.message;
       }
-      const table = await this.db.assignTable(reservationTime, people); //modificado
-      if (table.id == "-1") {
-        return table.message;
+
+      const tableAssignment = await this.db.assignTable(
+        reservationTime,
+        people
+      );
+      if (tableAssignment.id === "-1") {
+        return "No hay mesas disponibles para esa cantidad de personas en ese horario.";
       }
-      const reservation = {
+
+      // Get the table details to access the name
+      const allTables = await this.db.getAllTables();
+      const assignedTable = allTables.find(
+        (table) => table.id === tableAssignment.id
+      );
+      const tableName = assignedTable ? assignedTable.name : tableAssignment.id;
+
+      const formattedMeals =
+        meals?.map((meal) => ({
+          name: meal.name,
+          prepTime: meal.prepTime || 15, // Default prep time
+          status: "pending" as MealStatus,
+        })) || [];
+
+      const reservation: Partial<Reservation> = {
         customerId: this.customerId,
         customerName: trimmedName,
         people,
-        table,
+        table: tableAssignment.id,
         time: reservationTime,
-        meals: meals || [],
+        meals: formattedMeals,
         status: "pending",
       };
-      const id = await this.db.createReservation(reservation as any);
-      return `Reserva creada para ${trimmedName} (${people} personas) el ${time} en la mesa ${table}.`;
+
+      const id = await this.db.createReservation(reservation);
+      return `Reserva creada para ${trimmedName} (${people} personas) el ${reservationTime.toLocaleString()} en la mesa ${tableName}.`;
     } catch (error) {
+      console.error("Error creating reservation:", error);
       return `Error al crear la reserva: ${error}`;
     }
   }
@@ -172,14 +195,16 @@ export class ReservationTools {
       }
       const reservation = await this.db.getReservationById(reservationId);
       if (!reservation) {
-        throw new Error('no existe una reservacion');
+        throw new Error("no existe una reservacion");
       }
-      const tableAssignment = await this.db.assignTable(reservationTime, reservation.people);
-      if (tableAssignment.id == "-1" ){
-        throw new Error (tableAssignment.message);
-      }
-      else {
-        const tables =  await this.db.getAllTables();
+      const tableAssignment = await this.db.assignTable(
+        reservationTime,
+        reservation.people
+      );
+      if (tableAssignment.id == "-1") {
+        throw new Error(tableAssignment.message);
+      } else {
+        const tables = await this.db.getAllTables();
         let pincheMesaReservada;
         for (let table of tables) {
           if (table.id == tableAssignment.id) {
@@ -190,10 +215,9 @@ export class ReservationTools {
           const table = String(pincheMesaReservada.id);
           await this.db.updateReservation(reservationId, {
             time: reservationTime,
-            table
+            table,
           });
         }
-
       }
 
       return `Horario de la reserva cambiado a ${newTime} en la mesa ${tableAssignment.id}.`;
@@ -236,6 +260,63 @@ export class ReservationTools {
       return `Las comidas de la reserva han sido actualizadas.`;
     } catch (error) {
       return `Error al actualizar las comidas de la reserva: ${error}`;
+    }
+  }
+
+  async updateReservation({
+    reservationId,
+    updateData,
+  }: {
+    reservationId: string;
+    updateData: Partial<Reservation>;
+  }): Promise<string> {
+    try {
+      const currentReservation = await this.db.getReservationById(
+        reservationId
+      );
+      if (!currentReservation) {
+        return "No se encontró la reserva especificada.";
+      }
+
+      if (updateData.time) {
+        const newTime = new Date(updateData.time);
+        if (isNaN(newTime.getTime())) {
+          return "La fecha y hora proporcionada no es válida.";
+        }
+
+        const validation = await this.validateReservationTime(
+          newTime,
+          currentReservation.customerId
+        );
+        if (!validation.isValid) {
+          return validation.message;
+        }
+      }
+
+      if (updateData.people) {
+        const tableAssignment = await this.db.assignTable(
+          updateData.time || currentReservation.time,
+          updateData.people
+        );
+        if (tableAssignment.id === "-1") {
+          return tableAssignment.message;
+        }
+        updateData.table = tableAssignment.id;
+      }
+
+      if (updateData.meals) {
+        updateData.meals = updateData.meals.map((meal) => ({
+          name: meal.name,
+          prepTime: meal.prepTime || 15,
+          status: meal.status || "pending",
+        }));
+      }
+
+      await this.db.updateReservation(reservationId, updateData);
+      return "Reserva actualizada exitosamente.";
+    } catch (error) {
+      console.error("Error updating reservation:", error);
+      return `Error al actualizar la reserva: ${error}`;
     }
   }
 }
@@ -453,6 +534,8 @@ export function bindToolsToInstance(tools: ReservationTools): ToolFunction[] {
           return await tools.updateReservationDetails(args);
         case "update_meals_in_reservation":
           return await tools.updateMealsInReservation(args);
+        case "update_reservation":
+          return await tools.updateReservation(args);
         default:
           throw new Error(`Unknown tool: ${tool.declaration.name}`);
       }

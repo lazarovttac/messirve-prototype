@@ -102,7 +102,7 @@ export function TablesView() {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold mb-4">Gestionar mesas</h2>
         <div className="flex items-center gap-3">
-          <Button
+          {/* <Button
             size="sm"
             variant="outline"
             onClick={handleGenerateTestData}
@@ -117,7 +117,7 @@ export function TablesView() {
             ) : (
               "Generar reservas de prueba"
             )}
-          </Button>
+          </Button> */}
           <Button
             size="sm"
             onClick={() => handleShowModal()}

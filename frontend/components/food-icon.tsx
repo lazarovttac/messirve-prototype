@@ -1,10 +1,19 @@
 import {
   Beef,
+  Cake,
   Coffee,
+  CookingPot,
+  Cookie,
+  Dessert,
+  Fish,
+  Grape,
+  IceCreamCone,
   Pizza,
   Salad,
   Sandwich,
+  Soup,
   UtensilsCrossed,
+  Wine,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -45,6 +54,27 @@ export function FoodIcon({ foodType, size = "md", className }: FoodIconProps) {
         return "food-icon-risotto";
       case "pizza":
         return "food-icon-pizza";
+      case "postre":
+      case "dessert":
+        return "food-icon-dessert";
+      case "helado":
+      case "icecream":
+        return "food-icon-icecream";
+      case "pastel":
+      case "cake":
+        return "food-icon-cake";
+      case "galleta":
+      case "cookie":
+        return "food-icon-cookie";
+      case "vino":
+      case "wine":
+        return "food-icon-wine";
+      case "pescado":
+      case "fish":
+        return "food-icon-fish";
+      case "uva":
+      case "grape":
+        return "food-icon-grape";
       default:
         return "food-icon-pasta"; // Default style
     }
@@ -56,17 +86,40 @@ export function FoodIcon({ foodType, size = "md", className }: FoodIconProps) {
         return <Beef size={iconSize[size]} className="text-white" />;
       case "pasta":
         return <UtensilsCrossed size={iconSize[size]} className="text-white" />;
-      case "salmón":
-      case "salmon":
+      case "ensalada":
+      case "salad":
         return <Salad size={iconSize[size]} className="text-white" />;
       case "hamburguesa":
         return <Sandwich size={iconSize[size]} className="text-white" />;
       case "risotto":
-        return <Coffee size={iconSize[size]} className="text-white" />;
+        return <Soup size={iconSize[size]} className="text-white" />;
       case "pizza":
         return <Pizza size={iconSize[size]} className="text-white" />;
+      case "postre":
+      case "dessert":
+        return <Dessert size={iconSize[size]} className="text-white" />;
+      case "helado":
+      case "icecream":
+        return <IceCreamCone size={iconSize[size]} className="text-white" />;
+      case "pastel":
+      case "cake":
+        return <Cake size={iconSize[size]} className="text-white" />;
+      case "galleta":
+      case "cookie":
+        return <Cookie size={iconSize[size]} className="text-white" />;
+      case "vino":
+      case "wine":
+        return <Wine size={iconSize[size]} className="text-white" />;
+      case "pescado":
+      case "salmón":
+      case "salmon":
+      case "fish":
+        return <Fish size={iconSize[size]} className="text-white" />;
+      case "uva":
+      case "grape":
+        return <Grape size={iconSize[size]} className="text-white" />;
       default:
-        return <UtensilsCrossed size={iconSize[size]} className="text-white" />;
+        return <CookingPot size={iconSize[size]} className="text-white" />;
     }
   };
 

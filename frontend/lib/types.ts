@@ -22,6 +22,7 @@ export interface Reservation {
   customerId: string;
   customerName: string;
   table: string;
+  tableName?: string;
   time: Date;
   people: number;
   meals: Meal[];

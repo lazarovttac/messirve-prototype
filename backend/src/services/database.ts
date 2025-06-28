@@ -1,5 +1,11 @@
 import { FirebaseClient } from "../config/firebase";
-import { Customer, Reservation, Meal, Table, TableAssignment } from "../lib/types";
+import {
+  Customer,
+  Reservation,
+  Meal,
+  Table,
+  TableAssignment,
+} from "../lib/types";
 
 export class DatabaseService {
   private firebase: FirebaseClient;
@@ -109,54 +115,90 @@ export class DatabaseService {
 
   async getReservationsByCustomer(customerId: string): Promise<Reservation[]> {
     try {
+      console.log("Getting reservations by customer:", customerId);
       const reservationsRef = this.firebase.db.collection("reservations");
       const query = reservationsRef.where("customerId", "==", customerId);
-      const results = await query.get();
-      return results.docs.map((doc: any) =>
-        this.validateAndConvertReservation({ id: doc.id, ...doc.data() })
-      );
+      const snapshot = await query.get();
+
+      return snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          customerId: data.customerId,
+          customerName: data.customerName,
+          table: data.table,
+          time: data.time.toDate(), // Convert Firestore Timestamp to Date
+          people: data.people,
+          meals:
+            data.meals?.map((meal: any) => ({
+              name: meal.name,
+              prepTime: meal.prepTime,
+              status: meal.status,
+            })) || [],
+          status: data.status,
+        };
+      });
     } catch (error) {
-      console.error(`Error al obtener reservas por cliente:`, error);
-      throw error;
+      console.error("Error getting reservations:", error);
+      throw new Error("Error al obtener las reservas");
     }
   }
 
   async getAllReservations(): Promise<Reservation[]> {
     try {
       const snapshot = await this.firebase.db.collection("reservations").get();
-      return snapshot.docs.map((doc: any) =>
-        this.validateAndConvertReservation({ id: doc.id, ...doc.data() })
-      );
+
+      return snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          customerId: data.customerId,
+          customerName: data.customerName,
+          table: data.table,
+          time: data.time.toDate(), // Convert Firestore Timestamp to Date
+          people: data.people,
+          meals:
+            data.meals?.map((meal: any) => ({
+              name: meal.name,
+              prepTime: meal.prepTime,
+              status: meal.status,
+            })) || [],
+          status: data.status,
+        };
+      });
     } catch (error) {
-      console.error("Error al obtener todas las reservas:", error);
-      throw error;
+      console.error("Error getting all reservations:", error);
+      throw new Error("Error al obtener todas las reservas");
     }
   }
 
-  async createReservation(
-    reservation: Omit<Reservation, "id">
-  ): Promise<string> {
+  async createReservation(data: Partial<Reservation>): Promise<string> {
     try {
-      // Validate the reservation data before saving
-      const validatedReservation =
-        this.validateAndConvertReservation(reservation);
-      // Convert to plain object for Firebase
-      const firebaseData = {
-        customerId: validatedReservation.customerId,
-        customerName: validatedReservation.customerName,
-        table: validatedReservation.table,
-        time: validatedReservation.time,
-        people: validatedReservation.people,
-        meals: validatedReservation.meals,
-        status: validatedReservation.status,
+      const validatedReservation: Reservation = {
+        id: this.firebase.db.collection("reservations").doc().id,
+        customerId: data.customerId || "",
+        customerName: data.customerName || "",
+        table: data.table || "",
+        time: data.time || new Date(),
+        people: data.people || 0,
+        meals:
+          data.meals?.map((meal) => ({
+            name: meal.name,
+            prepTime: meal.prepTime,
+            status: meal.status || "pending",
+          })) || [],
+        status: data.status || "pending",
       };
-      const docRef = await this.firebase.db
+
+      await this.firebase.db
         .collection("reservations")
-        .add(firebaseData);
-      return docRef.id;
+        .doc(validatedReservation.id)
+        .set(validatedReservation);
+
+      return validatedReservation.id;
     } catch (error) {
-      console.error("Error al crear reserva:", error);
-      throw error;
+      console.error("Error creating reservation:", error);
+      throw new Error("Error al crear la reserva");
     }
   }
 
@@ -165,102 +207,89 @@ export class DatabaseService {
     updateData: Partial<Reservation>
   ): Promise<void> {
     try {
-      // Validate the update data before saving
-      const validatedUpdateData =
-        this.validateAndConvertReservation(updateData);
-      // Convert to plain object for Firebase
-      const firebaseData = {
-        customerId: validatedUpdateData.customerId,
-        customerName: validatedUpdateData.customerName,
-        table: validatedUpdateData.table,
-        time: validatedUpdateData.time,
-        people: validatedUpdateData.people,
-        meals: validatedUpdateData.meals,
-        status: validatedUpdateData.status,
+      const validatedUpdateData: Partial<Reservation> = {
+        ...(updateData.customerId && { customerId: updateData.customerId }),
+        ...(updateData.customerName && {
+          customerName: updateData.customerName,
+        }),
+        ...(updateData.table && { table: updateData.table }),
+        ...(updateData.time && { time: updateData.time }),
+        ...(updateData.people && { people: updateData.people }),
+        ...(updateData.status && { status: updateData.status }),
+        ...(updateData.meals && {
+          meals: updateData.meals.map((meal) => ({
+            name: meal.name,
+            prepTime: meal.prepTime,
+            status: meal.status || "pending",
+          })),
+        }),
       };
+
       await this.firebase.db
         .collection("reservations")
         .doc(reservationId)
-        .update(firebaseData);
+        .update(validatedUpdateData);
     } catch (error) {
-      console.error(`Error al actualizar reserva:`, error);
-      throw error;
+      console.error("Error updating reservation:", error);
+      throw new Error("Error al actualizar la reserva");
     }
   }
 
-  async getAllTables(): Promise<Table[]> { //agregado
+  async getAllTables(): Promise<Table[]> {
+    //agregado
     try {
       const snapshot = await this.firebase.db
         .collection("tables")
-        .orderBy("chairs", "asc") 
+        .orderBy("people", "asc")
         .get();
 
-      return snapshot.docs.map(
-        (doc: any) => ({ id: doc.id, ...doc.data() } as Table) //el ...doc.data elimina los corchetes del objeto. 
-      );
+      return snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          name: data.name,
+          people: data.people,
+        };
+      });
     } catch (error) {
-      console.error("Error al obtener todas las mesas:", error);
-      throw error;
+      console.error("Error getting tables:", error);
+      throw new Error("Error al obtener las mesas");
     }
   }
 
-  async assignTable(time: Date, amountOfPeople: number ): Promise<TableAssignment> { //modificado
+  async assignTable(
+    time: Date,
+    amountOfPeople: number
+  ): Promise<TableAssignment> {
+    //modificado
     try {
-
       const allRestaurantTables = await this.getAllTables();
       const allReservations = await this.getAllReservations();
       const reservedTables = allReservations
-      .filter((r) => new Date(r.time).getTime() === time.getTime())
-      .map((r) => r.table);
+        .filter((r) => new Date(r.time).getTime() === time.getTime())
+        .map((r) => r.table);
       for (let table of allRestaurantTables) {
-        if (!reservedTables.includes(table.id) && (amountOfPeople <= table.chairs)){
+        if (
+          !reservedTables.includes(table.id) &&
+          amountOfPeople <= table.people
+        ) {
           const tableAssignment = {
-            "id": table.id, 
-            "message": ""
-          }
+            id: table.id,
+            message: "",
+          };
           return tableAssignment;
         }
       }
       const tableAssignment = {
-        "id": "-1", 
-        "message": "no se pudo asignar la mesa"
-      }
+        id: "-1",
+        message: "no se pudo asignar la mesa",
+      };
       return tableAssignment;
+    } catch (error) {
+      throw new Error(
+        "Perdón pero no tenemos mesas disponibles en ese horario"
+      );
     }
-    catch(error) {
-      throw new Error('Perdón pero no tenemos mesas disponibles en ese horario');
-    }
-    
-
-      /*
-  async assignTable(time: Date, amountOfPeople: number ): Promise<string> { //modificado
-    const allRestaurantTables = await this.getAllTables();
-    const allReservations = await this.getAllReservations();
-    const reservedTables = allReservations
-      .filter((r) => new Date(r.time).getTime() === time.getTime())
-      .map((r) => r.table);
-    for (let table of allRestaurantTables) {
-      if (!reservedTables.includes(table.id) && (amountOfPeople <= table.chairs)){
-        return table.toString();
-      }
-    }
-
-
-
-
-
-    const allRestaurantTables = await this.getAllTables();
-    const allReservations = await this.getAllReservations();
-    const reservedTables = allReservations
-      .filter((r) => new Date(r.time).getTime() === time.getTime())
-      .map((r) => r.table);
-
-    for (let i = 1; i <= maxTables; i++) {
-      if (!reservedTables.includes(i.toString())) {
-        return i.toString();
-      }
-    }*/
-    
   }
 
   async getOverlappingReservations(
@@ -293,6 +322,53 @@ export class DatabaseService {
     } catch (error) {
       console.error("Error al obtener reservas superpuestas:", error);
       throw error;
+    }
+  }
+
+  async getReservationsByTimeRange(
+    startTime: Date,
+    endTime: Date
+  ): Promise<Reservation[]> {
+    try {
+      const reservationsRef = this.firebase.db.collection("reservations");
+      const query = reservationsRef
+        .where("time", ">=", startTime)
+        .where("time", "<=", endTime);
+      const snapshot = await query.get();
+
+      return snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          customerId: data.customerId,
+          customerName: data.customerName,
+          table: data.table,
+          time: data.time.toDate(),
+          people: data.people,
+          meals:
+            data.meals?.map((meal: any) => ({
+              name: meal.name,
+              prepTime: meal.prepTime,
+              status: meal.status,
+            })) || [],
+          status: data.status,
+        };
+      });
+    } catch (error) {
+      console.error("Error getting reservations by time range:", error);
+      throw new Error("Error al obtener las reservas por rango de tiempo");
+    }
+  }
+
+  async deleteReservation(reservationId: string): Promise<void> {
+    try {
+      await this.firebase.db
+        .collection("reservations")
+        .doc(reservationId)
+        .delete();
+    } catch (error) {
+      console.error("Error deleting reservation:", error);
+      throw new Error("Error al eliminar la reserva");
     }
   }
 }
